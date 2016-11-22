@@ -7,6 +7,7 @@
 @property (strong, nonatomic) MTSCRA* mMagTek;
 @property bool mDeviceConnected;
 @property bool mDeviceOpened;
+@property bool mIsIDynamo;
 @property NSString* mTrackDataListenerCallbackId;
 
 @end
@@ -28,6 +29,7 @@
      object:nil];
      */
     NSLog(@"MagTek Plugin initialized");
+    self.mIsIDynamo = true;
 }
 
 - (void)isDeviceConnected:(CDVInvokedUrlCommand*)command
@@ -37,6 +39,7 @@
 	//Make MagTek call to check if device is connected
 	if(self.mMagTek != nil) {
 		self.mDeviceConnected = [self.mMagTek isDeviceConnected];
+        NSLog(self.mDeviceConnected ? @"isDeviceConnected Yes" : @"isDeviceConnected No");
 		pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsBool:self.mDeviceConnected];
 	}
 	else {
@@ -73,8 +76,10 @@
             [self.mMagTek setDeviceProtocolString:(@"com.magtek.idynamo")];
             
             self.mDeviceOpened = [self.mMagTek openDevice];
-            if([self.mMagTek isDeviceConnected]) {
+            if( self.mIsIDynamo && [self.mMagTek isDeviceConnected]) {
                 self.mDeviceConnected = true;
+                
+                self.mIsIDynamo = true;
                 
                 if([self.mMagTek isDeviceOpened]) {
                     self.mDeviceOpened = true;
@@ -94,7 +99,9 @@
                 
                 if([self.mMagTek isDeviceConnected]) {
                     self.mDeviceConnected = true;
-                    
+
+                    self.mIsIDynamo = false;
+
                     if([self.mMagTek isDeviceOpened]) {
                         self.mDeviceOpened = true;
                     }
