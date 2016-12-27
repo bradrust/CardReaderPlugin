@@ -52,6 +52,9 @@ import android.view.inputmethod.*;
 import android.view.*;
 
 public class MagTekUDynamoPlugin extends CordovaPlugin {
+
+  private static final String TAG = "sapphire";
+
 	// Message types sent from the BluetoothChatService Handler
 	public static final int MESSAGE_STATE_CHANGE = 1;
 	public static final int MESSAGE_READ = 2;
@@ -67,7 +70,7 @@ public class MagTekUDynamoPlugin extends CordovaPlugin {
 	private static final String CONFIGWS_USERNAME = "magtek";
 	private static final String CONFIGWS_PASSWORD = "p@ssword";
 
-	private AudioManager mAudioMgr;	
+	private AudioManager mAudioMgr;
 
 	//May not need
 	public static final String CONFIG_FILE = "MTSCRADevConfig.cfg";
@@ -78,7 +81,7 @@ public class MagTekUDynamoPlugin extends CordovaPlugin {
 	public static final String PARTIAL_AUTH_INDICATOR = "1";
 	// Intent request codes
 	private static final int REQUEST_CONNECT_DEVICE = 1;
-	
+
 	private MagTekSCRA mMTSCRA;
 	//private int miDeviceType=MagTekSCRA.DEVICE_TYPE_NONE;
 	private Handler mSCRADataHandler = new Handler(new SCRAHandlerCallback());
@@ -96,20 +99,22 @@ public class MagTekUDynamoPlugin extends CordovaPlugin {
 	private int mIntCurrentStatus;
 
 	private int mIntCurrentVolume;
-	
+
 	private String mStringAudioConfigResult;
 	private CallbackContext mEventListenerCb;
 
 	private void InitializeDevice() {
 		if(mMTSCRA == null) {
 			mMTSCRA = new MagTekSCRA(mSCRADataHandler);
-		}
+      Log.i(TAG, "create mMTSCRA");
+    }
 		if(mAudioMgr == null) {
 			mAudioMgr = (AudioManager) cordova.getActivity().getSystemService(Context.AUDIO_SERVICE);
+      Log.i(TAG, "create mAudioMgr");
 		}
 
 		InitializeData();
-		
+
 		onResume(false);
 
 		mIntCurrentVolume = mAudioMgr.getStreamVolume(AudioManager.STREAM_MUSIC);
@@ -125,7 +130,9 @@ public class MagTekUDynamoPlugin extends CordovaPlugin {
 		mIntCurrentDeviceStatus = MagTekSCRA.DEVICE_STATE_DISCONNECTED;
 
 		mStringAudioConfigResult = "";
-	}
+
+    Log.i(TAG, "InitializeData");
+  }
 
 	String setupAudioParameters() throws MTSCRAException {
 		mStringLocalConfig = "";
@@ -171,8 +178,8 @@ public class MagTekUDynamoPlugin extends CordovaPlugin {
 	        		 model.equals("SCH-R530")||//S3 US Cellular
 	        		 model.equals("SAMSUNG-SGH-I747")||// S3 AT&T
 	        		 model.equals("M532")||//Fujitsu
-	        		 model.equals("GT-N7100")||//Notes 2 
-	        		 model.equals("GT-N7105")||//Notes 2 
+	        		 model.equals("GT-N7100")||//Notes 2
+	        		 model.equals("GT-N7105")||//Notes 2
 	        		 model.equals("SAMSUNG-SGH-I317")||// Notes 2
 	        		 model.equals("SCH-I605")||// Notes 2
 	        		 model.equals("SCH-R950")||// Notes 2
@@ -211,9 +218,9 @@ public class MagTekUDynamoPlugin extends CordovaPlugin {
 		catch (Exception ex)
 		{
 		}
-		
+
 		return strXMLConfig;
-	
+
 	}
 
 	void setConfigurationLocal(String lpstrConfig)
@@ -224,18 +231,20 @@ public class MagTekUDynamoPlugin extends CordovaPlugin {
 		}
 		catch (Exception ex)
 		{
-			
+
 		}
-		
+
 	}
 
 	public boolean execute(String action, JSONArray args, CallbackContext callbackContext) throws JSONException {
 		PluginResult pr = new PluginResult(PluginResult.Status.ERROR, "Unhandled execute call: " + action);
 
+    Log.i(TAG, "action -> " + action);
+
 		if(action.equals("openDevice")) {
 			if(mMTSCRA == null) {
 				InitializeDevice();
-			}			
+			}
 
 			if(mbAudioConnected) {
                 if(mMTSCRA.getDeviceType() == MagTekSCRA.DEVICE_TYPE_AUDIO) {
@@ -257,6 +266,7 @@ public class MagTekUDynamoPlugin extends CordovaPlugin {
 
                 pr = new PluginResult(PluginResult.Status.OK, mMTSCRA.isDeviceConnected());
             } else {
+                Log.i(TAG, "mbAudioConnected was false so... No reader attached.");
                 pr = new PluginResult(PluginResult.Status.ERROR, "No reader attached.");
             }
 		}
@@ -284,7 +294,7 @@ public class MagTekUDynamoPlugin extends CordovaPlugin {
 				;
 			}
 		}
-*/		
+*/
 		else if(action.equals("getTrack1")) {
 			pr = new PluginResult(PluginResult.Status.OK, mMTSCRA.getTrack1());
 		}
@@ -320,11 +330,11 @@ public class MagTekUDynamoPlugin extends CordovaPlugin {
 				;
 			}
 		}
-*/		
+*/
 		else if(action.equals("listenForEvents")) {
 			pr = new PluginResult(PluginResult.Status.NO_RESULT);
 			pr.setKeepCallback(true);
-			
+
 			mEventListenerCb = callbackContext;
 		}
 		else if(action.equals("getCardName")) {
@@ -364,9 +374,11 @@ public class MagTekUDynamoPlugin extends CordovaPlugin {
     @Override
     public void onResume(boolean multitasking) {
     	super.onResume(multitasking);
-    	
-        cordova.getActivity().getApplicationContext().registerReceiver(mHeadsetReceiver, new IntentFilter(Intent.ACTION_HEADSET_PLUG));
-        cordova.getActivity().getApplicationContext().registerReceiver(mNoisyAudioStreamReceiver, new IntentFilter(AudioManager.ACTION_AUDIO_BECOMING_NOISY));
+
+      Log.i(TAG, "onResume");
+
+      cordova.getActivity().getApplicationContext().registerReceiver(mHeadsetReceiver, new IntentFilter(Intent.ACTION_HEADSET_PLUG));
+      cordova.getActivity().getApplicationContext().registerReceiver(mNoisyAudioStreamReceiver, new IntentFilter(AudioManager.ACTION_AUDIO_BECOMING_NOISY));
 
         // Performing this check in onResume() covers the case in which BT was
         // not enabled during onStart(), so we were paused to enable it...
@@ -376,7 +388,9 @@ public class MagTekUDynamoPlugin extends CordovaPlugin {
 
     @Override
     public void onDestroy() {
-        cordova.getActivity().getApplicationContext().unregisterReceiver(mHeadsetReceiver);
+      Log.i(TAG, "onDestroy");
+
+      cordova.getActivity().getApplicationContext().unregisterReceiver(mHeadsetReceiver);
         cordova.getActivity().getApplicationContext().unregisterReceiver(mNoisyAudioStreamReceiver);
         if (mMTSCRA != null)
             mMTSCRA.closeDevice();
@@ -447,25 +461,25 @@ public class MagTekUDynamoPlugin extends CordovaPlugin {
 								mIntCurrentDeviceStatus = MagTekSCRA.DEVICE_STATE_CONNECTED;
 								maxVolume();
 								break;
-							
+
 							case MagTekSCRA.DEVICE_STATE_CONNECTING:
 								mIntCurrentDeviceStatus = MagTekSCRA.DEVICE_STATE_CONNECTING;
 								break;
-							
+
 							case MagTekSCRA.DEVICE_STATE_DISCONNECTED:
 								mIntCurrentDeviceStatus = MagTekSCRA.DEVICE_STATE_DISCONNECTED;
 								minVolume();
 								break;
 						}
 						break;
-					
+
 					case MagTekSCRA.DEVICE_MESSAGE_DATA_START:
 						if(msg.obj != null) {
 							//Unhandled event
 							return true;
 						}
 						break;
-					
+
 					case MagTekSCRA.DEVICE_MESSAGE_DATA_CHANGE:
 						if(msg.obj != null) {
 							sendCardData();
@@ -520,7 +534,7 @@ public class MagTekUDynamoPlugin extends CordovaPlugin {
     		}
     	}
     }
-	
+
 	public class headSetBroadCastReceiver extends BroadcastReceiver
     {
 
@@ -531,6 +545,7 @@ public class MagTekUDynamoPlugin extends CordovaPlugin {
         	{
                 String action = intent.getAction();
                 //Log.i("Broadcast Receiver", action);
+                Log.i(TAG, "Broadcast Receiver -> " + action);
                 if( (action.compareTo(Intent.ACTION_HEADSET_PLUG))  == 0)   //if the action match a headset one
                 {
                     int headSetState = intent.getIntExtra("state", 0);      //get the headset state property
@@ -539,10 +554,12 @@ public class MagTekUDynamoPlugin extends CordovaPlugin {
 
                     if( (headSetState == 1) && (hasMicrophone == 1))        //headset was unplugged & has no microphone
                     {
-                    	mbAudioConnected=true;
+                      Log.i(TAG, "Broadcast Receiver -> mbAudioConnected -> true");
+                      mbAudioConnected=true;
                     }
-                    else 
+                    else
                     {
+                      Log.i(TAG, "Broadcast Receiver -> mbAudioConnected -> false");
                     	mbAudioConnected=false;
                     	if(mMTSCRA.getDeviceType()==MagTekSCRA.DEVICE_TYPE_AUDIO)
                     	{
@@ -551,16 +568,17 @@ public class MagTekUDynamoPlugin extends CordovaPlugin {
                     			mMTSCRA.closeDevice();
                     		}
                     	}
-                	
+
                     }
 
-                }           
-        		
+                }
+
         	}
         	catch(Exception ex)
         	{
-        		
-        	}
+        	  ex.printStackTrace();
+            Log.i(TAG, "Broadcast Receiver -> exception " + ex.getMessage());
+          }
 
         }
 
@@ -579,7 +597,7 @@ public class MagTekUDynamoPlugin extends CordovaPlugin {
 		fis.close();
 		return data;
 	}
-	
+
 	public static void WriteSettings(Context context, String data, String file) throws IOException {
 		FileOutputStream fos= null;
 		OutputStreamWriter osw = null;
@@ -589,5 +607,5 @@ public class MagTekUDynamoPlugin extends CordovaPlugin {
 		osw.close();
 		fos.close();
 	}
-	
+
 }

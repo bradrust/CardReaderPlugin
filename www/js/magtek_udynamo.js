@@ -1,14 +1,19 @@
     'use strict';
- 
+
+    console.log('MAGTEK bootstrap magtek');
+
     var MagTek = ( typeof MagTek === 'undefined' ? {} : MagTek );
+
     var cordova = window.cordova || window.Cordova,
         fail = function(error) {
-            console.log('Error running your request: ' + error);
+          console.log('MAGTEK generic failure ' + error);
+          console.log('Error running your request: ' + error);
         };
- 
+
     MagTek.isDeviceConnected = function(callback, error) {
         var success = function(connected) {
-            callback(connected);
+          console.log('MAGTEK isDeviceConnected success');
+          callback(connected);
         };
         var fail_handler = error || fail;
 
@@ -16,14 +21,20 @@
     };
 
     MagTek.isDeviceOpened = function(callback, error) {
-        var success = function(opened) { callback(opened); };
+        var success = function(opened) {
+          console.log('MAGTEK isDeviceOpened success');
+          callback(opened);
+        };
         var fail_handler = error || fail;
 
         cordova.exec(success, fail_handler, 'com.egood.magtek-udynamo', 'isDeviceOpened', []);
     };
 
     MagTek.openDevice = function(callback, error) {
-        var success = function(status) { callback(status); }
+        var success = function(status) {
+          console.log('MAGTEK openDevice success');
+          callback(status);
+        }
         var fail_handler = error || fail;;
 
         cordova.exec(success, fail_handler, 'com.egood.magtek-udynamo', 'openDevice', []);
@@ -182,5 +193,7 @@
 
         cordova.exec(success, fail_handler, 'com.egood.magtek-udynamo', 'setDeviceType', [device_type]);
     };
- 
+
+    console.log('MAGTEK MagTek export -> ' + JSON.stringify(MagTek));
+
     module.exports = MagTek;
