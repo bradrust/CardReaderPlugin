@@ -243,7 +243,7 @@ public class MagTekUDynamoPlugin extends CordovaPlugin {
 	}
 
 	private PluginResult doInitStuff() {
-		PluginResult pr = new PluginResult(PluginResult.Status.OK, true);
+		PluginResult pr = null;
 		if(mMTSCRA == null) {
 			pluginInitializeAuthorized();
 		}
@@ -261,12 +261,9 @@ public class MagTekUDynamoPlugin extends CordovaPlugin {
 
 		PluginResult pr = null;
 
-		if(true || mbAudioConnected) {
-
+		if(mbAudioConnected) {
 			long rv = openDevice();
-
 			Log.i(TAG, "after open... connected -> " + isDeviceOpened() + ", " + rv);
-
 			pr = new PluginResult(PluginResult.Status.OK, rv == 0L);
 		} else {
 			Log.i(TAG, "mbAudioConnected was false so... No reader attached.");
@@ -280,21 +277,16 @@ public class MagTekUDynamoPlugin extends CordovaPlugin {
 	public boolean execute(String action, JSONArray args, CallbackContext callbackContext) throws JSONException {
 		PluginResult pr = new PluginResult(PluginResult.Status.ERROR, "Unhandled execute call: " + action);
 
-		mEventListenerCb = callbackContext;
-
 		Log.i(TAG, "action -> " + action);
 
 		if(action.equals("openDevice")) {
-
+			// we are only supporting if the user has already allows audio permissions
 			if(cordova.hasPermission(RECORD_AUDIO))
 			{
-				doOpenStuff();
+				pr = doOpenStuff();
+			} else {
+				pr = new PluginResult(PluginResult.Status.ERROR, "Audio permission wasn't assigned at startup");
 			}
-			else
-			{
-				getAudioPermission(RECORD_REQ_CODE);
-			}
-
 		}
 		else if(action.equals("closeDevice")) {
 			mMTSCRA.closeDevice();
@@ -304,11 +296,13 @@ public class MagTekUDynamoPlugin extends CordovaPlugin {
 
 			if(cordova.hasPermission(RECORD_AUDIO))
 			{
-				doInitStuff();
+				pr = doInitStuff();
 			}
 			else
 			{
+				mEventListenerCb = callbackContext;
 				getAudioPermission(RECORD_INIT_CODE);
+				pr = new PluginResult(PluginResult.Status.OK);
 			}
 		}
 		else if(action.equals("isDeviceOpened")) {
@@ -574,7 +568,8 @@ public class MagTekUDynamoPlugin extends CordovaPlugin {
 
 							case Disconnected:
 								Log.i(TAG, "OnDeviceConnectionStateChanged.Disconnected");
-								minVolume();
+								// TODO... dedicated device, no need to reset volume
+								// minVolume();
 								break;
 						}
 						break;
