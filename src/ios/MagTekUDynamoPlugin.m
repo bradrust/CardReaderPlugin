@@ -72,7 +72,7 @@
     NSLog(@"opening device...");
 	//Open MagTek device to start reading card data
 	if(self.mMagTek != nil) {
-        NSLog(@"device not already open...")
+        NSLog(@"device not already open...");
         if(![self mDeviceOpened]) {
                 NSLog(@"trying udynamo...");
                 //Lets try an uDynamo Reader
