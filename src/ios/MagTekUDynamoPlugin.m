@@ -69,12 +69,12 @@
 {
 	CDVPluginResult* pluginResult = nil;
     
-    NSLog(@"opening device...")
+    NSLog(@"opening device...");
 	//Open MagTek device to start reading card data
 	if(self.mMagTek != nil) {
         NSLog(@"device not already open...")
         if(![self mDeviceOpened]) {
-                NSLog(@"trying udynamo...")
+                NSLog(@"trying udynamo...");
                 //Lets try an uDynamo Reader
                 [self.mMagTek setDeviceType:(MAGTEKAUDIOREADER)];
                 [self.mMagTek setDeviceProtocolString:(@"com.magtek.udynamo")];
@@ -82,7 +82,7 @@
                 self.mDeviceOpened = [self.mMagTek openDevice];
                 
                 if([self.mMagTek isDeviceConnected]) {
-                    NSLog(@"udynamo found and connected...")
+                    NSLog(@"udynamo found and connected...");
                     self.mDeviceConnected = true;
 
                     self.mIsIDynamo = false;
@@ -97,7 +97,7 @@
                     pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsBool:self.mDeviceOpened];
                 }
                 else {
-                    NSLog(@"udynamo not connected...")
+                    NSLog(@"udynamo not connected...");
                     self.mDeviceOpened = false;
                     self.mDeviceConnected = false;
                     
@@ -106,7 +106,7 @@
             }
         }
         else {
-            NSLog(@"udynamo already connected...")
+            NSLog(@"udynamo already connected...");
             pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsString:@"Reader already open."];
         }
     
